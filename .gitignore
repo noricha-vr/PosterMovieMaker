@@ -2,3 +2,5 @@ img/*
 movie/*
 *.png*
 *format*
+.DS_Store
+*.pyc

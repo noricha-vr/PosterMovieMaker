@@ -1,23 +1,27 @@
 FROM python:3.8-slim
 
-# インストール
+# OSのパッケージインストール
 RUN apt-get update && \
-    apt-get install -y ffmpeg wget && \
-    pip install --no-cache-dir gunicorn Flask google-cloud-storage requests
+    apt-get install -y ffmpeg wget git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# アプリケーションの準備
-COPY . /app
+# Pythonの依存関係をインストール
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# ディレクトリを作成
+# 必要なディレクトリの作成
 RUN mkdir -p /app/img && mkdir -p /app/movie
 
+# 作業ディレクトリの設定
 WORKDIR /app/src
 
-# 環境変数
+# 環境変数の設定
 ENV PORT 8080
-
-# Set python path
 ENV PYTHONPATH /app/src
 
-# スクリプトの実行
+# アプリケーションのディレクトリをコピー
+COPY . /app
+
+# アプリケーションの起動
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 app:app

@@ -1,0 +1,5 @@
+# requirements.txt
+gunicorn
+Flask
+google-cloud-storage
+requests
