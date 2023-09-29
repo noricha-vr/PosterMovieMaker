@@ -12,9 +12,6 @@
         }
     },
     "mounts": [
-        "source=./,target=/workspace,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
     ]
-    // その他の設定はコメントアウトされているままです。
-    // 必要に応じて、コメントアウトを解除し、設定を追加してください。
 }
