@@ -1,47 +1,47 @@
 import unittest
-from unittest.mock import patch, Mock
-from src.app import app, run_script  # your_flask_appは上記のFlaskコードが保存されているPythonファイル名に置き換えてください。
+from unittest.mock import patch, MagicMock
+from src.utils import download_images, image_to_movie, upload_blob, MovieConfig  
 
-class TestFlaskApp(unittest.TestCase):
-
-    def setUp(self):
-        app.config['TESTING'] = True
-        self.client = app.test_client()
-
-    @patch('requests.get')
-    def test_run_script_json_get(self, mock_get):
-        # tests/test_data.json を読み込んでtextに設定
-        with open('tests/test_data.json', 'r') as f:
-            test_data = f.read()
-        mock_get.return_value = Mock(status_code=200, text=test_data)
-        with self.client:
-            response = self.client.get('/')
-            self.assertEqual(response.status_code, 200)
-            mock_get.assert_called_with('https://noricha-vr.github.io/toGithubPagesJson/sample.json')
-
-    @patch('subprocess.run')
-    def test_run_script_wget(self, mock_run):
-        with self.client:
-            response = self.client.get('/')
-            self.assertEqual(response.status_code, 200)
-            mock_run.assert_any_call("wget https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png?ex=6515e050&is=65148ed0&hm=d38605afe58edb724807225da74bb8dbeaed0f9f7b7d11aebbc9ec2fad111fb9 -O 000.png", shell=True)
-
-    @patch('subprocess.call')
-    def test_run_script_ffmpeg(self, mock_call):
-        with self.client:
-            response = self.client.get('/')
-            self.assertEqual(response.status_code, 200)
-            mock_call.assert_called()
-
-    @patch('google.cloud.storage.Client')
-    def test_run_script_gcs_upload(self, mock_client):
-        mock_instance = mock_client.return_value
-        mock_bucket = Mock()
-        mock_instance.bucket.return_value = mock_bucket
-        mock_blob = Mock()
+class TestUtils(unittest.TestCase):
+    
+    @patch("subprocess.run")
+    def test_download_images(self, mock_subprocess_run):
+        data = [
+            {"ポスター": "https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png"},
+            {"ポスター": "https://cdn.discordapp.com/attachments/1136630413054464070/1147808687201734736/3.png?ex=6515e064&is=65148ee4&hm=41f9e78af5f07d90fe5b5b8caebf28483c54e0dbfa521c21b50e4431b0f00dd3&"}
+        ]
+        result = download_images(data)
+        self.assertEqual(result, "img/001.png")
+        self.assertEqual(mock_subprocess_run.call_count, 2)
+    
+    @patch("subprocess.call")
+    def test_image_to_movie(self, mock_subprocess_call):
+        movie_config = MovieConfig(frame_rate=2, width=640, encode_speed="fast", output_movie_path="output.mp4")
+        image_paths = ["img/000.png", "img/001.png"]
+        image_to_movie(movie_config, image_paths)
+        mock_subprocess_call.assert_called_once_with([
+                    'ffmpeg', '-framerate', '2', '-pattern_type', 'glob', '-i', 'img/*.png',
+                    '-vf', "scale='min(640,iw)':-2", '-c:v', 'h264', '-pix_fmt', 'yuv420p',
+                    '-preset', 'fast', '-tune', 'stillimage', '-y', 'output.mp4'
+                ])
+        
+        with self.assertRaises(Exception) as context:
+            image_to_movie(movie_config, [])
+        self.assertEqual(str(context.exception), "No image files.")
+    
+    @patch("google.cloud.storage.Client")
+    def test_upload_blob(self, mock_storage_client):
+        mock_bucket = MagicMock()
+        mock_blob = MagicMock()
+        mock_storage_client.return_value.bucket.return_value = mock_bucket
         mock_bucket.blob.return_value = mock_blob
+        
+        upload_blob("my_bucket", "source_file.mp4", "destination_blob_name")
+        
+        mock_storage_client.return_value.bucket.assert_called_once_with("my_bucket")
+        mock_bucket.blob.assert_called_once_with("destination_blob_name")
+        mock_blob.upload_from_filename.assert_called_once_with("source_file.mp4")
 
-        with self.client:
-            response = self.client.get('/')
-            self.assertEqual(response.status_code, 200)
-            mock_blob.upload_from_filename.assert_called_with('output.mp4')
+
+if __name__ == '__main__':
+    unittest.main()
