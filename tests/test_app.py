@@ -10,7 +10,10 @@ class TestFlaskApp(unittest.TestCase):
 
     @patch('requests.get')
     def test_run_script_json_get(self, mock_get):
-        mock_get.return_value = Mock(status_code=200, text='{"test": "data"}')
+        # tests/test_data.json を読み込んでtextに設定
+        with open('tests/test_data.json', 'r') as f:
+            test_data = f.read()
+        mock_get.return_value = Mock(status_code=200, text=test_data)
         with self.client:
             response = self.client.get('/')
             self.assertEqual(response.status_code, 200)
@@ -42,7 +45,3 @@ class TestFlaskApp(unittest.TestCase):
             response = self.client.get('/')
             self.assertEqual(response.status_code, 200)
             mock_blob.upload_from_filename.assert_called_with('output.mp4')
-
-
-if __name__ == '__main__':
-    unittest.main()
