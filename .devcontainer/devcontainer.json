@@ -7,7 +7,14 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.python"
+                "donjayamanne.githistory",
+                "GitHub.copilot",
+                "ms-python.autopep8",
+                "ms-python.python",
+                "batisteo.vscode-django",
+                "visualstudioexptteam.vscodeintellicode",
+                "ivoh.sendtoterminalplus",
+                "ms-python.pylint",
             ]
         }
     },
