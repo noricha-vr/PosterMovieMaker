@@ -1,0 +1,29 @@
+steps:
+
+  # Build with Kaniko
+  - name: 'gcr.io/kaniko-project/executor'
+    args:
+      - --destination=asia-northeast1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/poster-movie-maker:$SHORT_SHA
+      - --destination=asia-northeast1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/poster-movie-maker:$BRANCH_NAME
+      - --destination=asia-northeast1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/poster-movie-maker:latest
+      - --cache=true
+      - --cache-ttl=24h
+      - --dockerfile=./Dockerfile
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'poster-movie-maker'
+      - '--allow-unauthenticated'
+      - '--region'
+      - 'asia-northeast1'
+      - '--memory'
+      - '2Gi'
+      - '--image'
+      - 'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/poster-movie-maker:$SHORT_SHA'
+      - '--platform'
+      - 'managed'
+      - '--service-account'
+      - 'poster-movie-maker@taaguild.iam.gserviceaccount.com'
