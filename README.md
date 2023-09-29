@@ -15,25 +15,25 @@
 1. このリポジトリをクローン
 
     ```bash
-    git clone https://github.com/your-username/your-repo.git
+    git clone git@github.com:noricha-vr/PosterMovieMaker.git
     ```
 
 2. ディレクトリに移動
 
     ```bash
-    cd your-repo
+    cd PosterMovieMaker
     ```
 
 3. Dockerイメージをビルド
 
     ```bash
-    docker build -t image-to-movie .
+    docker build -t poster-movie-maker .
     ```
 
 4. Dockerコンテナを実行
 
     ```bash
-    docker run -p 8080:8080 image-to-movie
+    docker run -p 8080:8080 poster-movie-maker
     ```
 
 5. ブラウザまたは`curl`で`http://localhost:8080/`にアクセス
