@@ -11,20 +11,16 @@ app = Flask(__name__)
 @app.route('/')
 def run_script():
 
-    # imgとmovieディレクトリを作成
-    subprocess.run("mkdir -p img", shell=True)
-    subprocess.run("mkdir -p movie", shell=True)
-    
     response = requests.get('https://noricha-vr.github.io/toGithubPagesJson/sample.json')
     data = json.loads(response.text)
 
-    movie_config = MovieConfig(frame_rate='1', width='640', encode_speed='fast', output_movie_path='movie/output.mp4', image_type='png')
 
     for i, item in enumerate(data):
-        poster_url = item.get("ポスター", "") or "https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png"
+        poster_url = item.get("ポスター", "https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png") 
         image_file_name = f"img/{i:03d}.png"
         subprocess.run(f"wget {poster_url} -O {image_file_name}", shell=True)
 
+    movie_config = MovieConfig(frame_rate='1', width='640', encode_speed='fast', output_movie_path='movie/output.mp4', image_type='png')
     image_to_movie(movie_config)
 
     bucket_name = "TaAGatheringListSystem"
