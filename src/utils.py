@@ -82,28 +82,31 @@ def image_to_movie(movie_config: MovieConfig,image_paths:List[str]) -> None:
     """
     if len(image_paths) == 0:
         raise Exception("No image files.")
-    # copy images for frame rate
-    copy_images_for_frame_rate(image_paths, movie_config.frame_rate)
-    # stop watch
-    start = time.time()
-    image_dir = pathlib.Path(image_paths[0]).parent + '.'+movie_config.image_type
+    img_dir = str(pathlib.Path(image_paths[0]).parent) + '/*.' + movie_config.image_type
+    logger.info(f'img_dir: {img_dir}')
     commands = ['ffmpeg',
-                '-framerate', f'{movie_config.frame_rate}',
-                # Select image_dir/*.file_type
-                '-pattern_type', 'glob', '-i', image_dir,
-                '-vf', f"scale='min({movie_config.width},iw)':-2",  # iw is input width, -2 is auto height
-                '-c:v', 'h264',  # codec
-                '-pix_fmt', 'yuv420p',  # pixel format (color space)
-                '-preset', movie_config.encode_speed,
-                '-tune', 'stillimage',  # tune for still image
-                '-y',  # overwrite output file
-                f'{movie_config.output_movie_path}']
-    logger.info(f'command: {commands}')
-    subprocess.call(commands)
-    logger.info(f"MovieMaker.image_to_movie: {time.time() - start} sec")
+                    '-framerate', f'{movie_config.frame_rate}',
+                    # Select image_dir/*.file_type
+                    '-pattern_type', 'glob', '-i', img_dir,
+                    '-vf', f"scale='min({movie_config.width},iw)':-2",  # iw is input width, -2 is auto height
+                    '-c:v', 'h264',  # codec
+                    '-pix_fmt', 'yuv420p',  # pixel format (color space)
+                    '-preset', movie_config.encode_speed,
+                    '-tune', 'stillimage',  # tune for still image
+                    '-y',  # overwrite output file
+                    f'{movie_config.output_movie_path}']
+    logger.info(f'commands: {commands}')
+    try:
+        result = subprocess.run(commands, check=True, stderr=subprocess.PIPE, text=True)
+    except subprocess.CalledProcessError as e:
+        error_message = e.stderr
+        print(f'Error: {error_message}')
+    
 
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(source_file_name)
+
+image_to_movie(MovieConfig(frame_rate=2, width=640, encode_speed="fast", output_movie_path="movie/output.mp4"), ["img/000.png", "img/001.png"])

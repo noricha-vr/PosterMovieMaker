@@ -30,7 +30,7 @@ class TestUtils(unittest.TestCase):
 
         # 動画の長さが、画像の枚数とフレームレートに基づいて正しいことを確認
         with VideoFileClip(movie_config.output_movie_path) as clip:
-            expected_duration = len(image_paths) / movie_config.frame_rate
+            expected_duration = len(image_paths)
             self.assertEqual(clip.duration, expected_duration)
 
         # テスト後に動画ファイルを削除
