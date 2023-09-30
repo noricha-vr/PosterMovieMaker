@@ -1,40 +1,51 @@
+import json
+import shutil
 import unittest
-from unittest.mock import patch, MagicMock
-from utils import download_images, image_to_movie, upload_blob, MovieConfig  
 from unittest.mock import patch
+from utils import download_images, image_to_movie, to_image_urls, upload_blob, MovieConfig  
 from moviepy.editor import VideoFileClip
 import os
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TestUtils(unittest.TestCase):
-    
+
+    def setUp(self) -> None:
+        with open("tests/test_data.json", "r") as f:
+            self.data = json.load(f)
+        self.image_urls = to_image_urls(self.data)
+        self.image_paths = download_images(self.image_urls)
+        logging.debug(self.image_urls)
+        logging.debug(self.image_paths)
+
+    def tearDown(self) -> None:
+        if os.path.exists("img"):
+            shutil.rmtree("img")
+        output_movie_path = "movie/output.mp4"
+        if os.path.exists(output_movie_path):
+            os.remove(output_movie_path)
+
+    def test_to_image_url(self):
+        self.assertEqual(self.image_urls, 
+            ['https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png',
+            'https://cdn.discordapp.com/attachments/1111955559562870875/1153912198700224532/Poster20230919_002.png',
+            'https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png'] , 
+            "画像のURLが一致しません")
+
     def test_download_images(self):
-        data = [
-            {"ポスター": "https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png"},
-            {"ポスター": "https://cdn.discordapp.com/attachments/1136630413054464070/1147808687201734736/3.png?ex=6515e064&is=65148ee4&hm=41f9e78af5f07d90fe5b5b8caebf28483c54e0dbfa521c21b50e4431b0f00dd3&"}
-        ]
-        result = download_images(data)
-        self.assertEqual(result, ['img/000.png', 'img/001.png'])
-    
+        self.assertEqual(len(self.image_paths), len(self.data), "画像の枚数が一致しません")
 
     @patch("subprocess.call")
     def test_image_to_movie_creation_and_duration(self, mock_subprocess_call):
-        # MovieConfigオブジェクトの作成とimage_pathsの定義
         movie_config = MovieConfig(frame_rate=2, width=640, encode_speed="fast", output_movie_path="movie/output.mp4")
-        image_paths = ["img/000.png", "img/001.png"]
-
-        # image_to_movie関数の呼び出し
-        image_to_movie(movie_config, image_paths)
-
-        # 動画ファイルが存在することを確認
+        image_to_movie(movie_config, self.image_paths)
         self.assertTrue(os.path.exists(movie_config.output_movie_path), "動画ファイルが存在しません")
-
-        # 動画の長さが、画像の枚数とフレームレートに基づいて正しいことを確認
         with VideoFileClip(movie_config.output_movie_path) as clip:
-            expected_duration = len(image_paths)
+            expected_duration = len(self.image_paths) / movie_config.frame_rate
             self.assertEqual(clip.duration, expected_duration)
 
-        # テスト後に動画ファイルを削除
-        os.remove(movie_config.output_movie_path)
     
     @patch("google.cloud.storage.Client")
     def test_upload_blob(self, mock_storage_client):

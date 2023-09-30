@@ -8,11 +8,13 @@ import time
 import requests
 import os
 import logging
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
+import sys
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-logger = logging.getLogger(__name__)
-logger.addHandler(ch)
+bucket_name = "TaAGatheringListSystem"
+source_file_name = "movie/output.mp4"
+destination_blob_name = "TaAGatheringList.mp4"
+json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
 
 class MovieConfig:
     def __init__(self, frame_rate, width, encode_speed, output_movie_path, image_type='png'):
@@ -22,32 +24,35 @@ class MovieConfig:
         self.output_movie_path = output_movie_path
         self.image_type = image_type
 
-
-
-def download_images(data)->list:
-    # ダウンロードした画像ファイルのパスを返す
+def to_image_urls(data:dict)->list:
     images = []
     default_image_url = "https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png"
+    for i, item in enumerate(data):
+        poster_url = item.get("ポスター", '')
+        if poster_url == '':
+            images.append(default_image_url)
+        else:
+            images.append(poster_url)
+    return images
     
+
+def download_images(image_urls:list[str])->list:
     # imgフォルダがない場合、作成する
     if not os.path.exists("img"):
         os.makedirs("img")
-    
-    for i, item in enumerate(data):
-        poster_url = item.get("ポスター", default_image_url)
+    file_names = []
+    for i, image_url in enumerate(image_urls):
         image_file_name = f"img/{i:03d}.png"
-        
         # requestsを使用して画像をダウンロード
         try:
-            response = requests.get(poster_url, timeout=3)
+            response = requests.get(image_url, timeout=3)
             response.raise_for_status()  # エラーレスポンスを確認し、エラーの場合は例外を発生させる
             with open(image_file_name, 'wb') as f:
                 f.write(response.content)
-            images.append(image_file_name)
+            file_names.append(image_file_name)
         except requests.RequestException as e:
             print(f"画像のダウンロードに失敗しました: {e}")
-    
-    return images  # images リストを返すように変更しました。
+    return file_names 
 
 def copy_images_for_frame_rate(image_paths: List[str], frame_rate) -> None:
     """
@@ -108,5 +113,3 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(source_file_name)
-
-image_to_movie(MovieConfig(frame_rate=2, width=640, encode_speed="fast", output_movie_path="movie/output.mp4"), ["img/000.png", "img/001.png"])

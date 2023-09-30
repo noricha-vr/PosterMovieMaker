@@ -5,10 +5,7 @@ from movie import image_to_movie, MovieConfig, download_images, upload_blob
 
 app = Flask(__name__)
 
-bucket_name = "TaAGatheringListSystem"
-source_file_name = "movie/output.mp4"
-destination_blob_name = "TaAGatheringList.mp4"
-json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
+
 
 @app.route('/')
 def run_script():
