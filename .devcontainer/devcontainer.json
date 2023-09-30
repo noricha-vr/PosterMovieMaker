@@ -1,5 +1,6 @@
 {
     "name": "Existing Dockerfile",
+    "image": "poster-movie-convertor",
     "build": {
         "context": "..",
         "dockerfile": "../Dockerfile"
@@ -19,6 +20,8 @@
         }
     },
     "mounts": [
+        "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
-    ]
+    ],
+    "workspaceFolder": "/app"
 }
