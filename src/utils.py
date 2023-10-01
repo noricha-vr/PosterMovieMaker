@@ -9,6 +9,7 @@ import requests
 import os
 import logging
 import sys
+from PIL import Image
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 bucket_name = "ta-a-gathering"
@@ -24,7 +25,7 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 
 
 class MovieConfig:
-    def __init__(self, frame_rate, width, encode_speed, output_movie_path, image_type='png'):
+    def __init__(self, width, encode_speed, output_movie_path, image_type='png',frame_rate=2):
         self.frame_rate = frame_rate
         self.width = width
         self.encode_speed = encode_speed
@@ -62,6 +63,20 @@ def download_images(image_urls:list[str])->list:
             print(f"画像のダウンロードに失敗しました: {e}")
     return file_names 
 
+def to_png(image_paths:List[str])->List[str]:
+    # Pillow で画像を開き、PNG に変換して保存
+    png_paths = []
+    for i, image_path in enumerate(image_paths):
+        png_path = image_path.replace(
+            f'.{image_path.split(".")[-1]}',
+            f'.png')
+        png_paths.append(png_path)
+        try:
+            Image.open(image_path).save(png_path)
+        except OSError:
+            print(f"{image_path} cannot be converted.")
+    return png_paths
+
 def copy_images_for_frame_rate(image_paths: List[str], frame_rate) -> None:
     """
     Copy files to create images for frame rate.
@@ -95,8 +110,9 @@ def image_to_movie(movie_config: MovieConfig,image_paths:List[str]) -> None:
     """
     if len(image_paths) == 0:
         raise Exception("No image files.")
-    img_dir = str(pathlib.Path(image_paths[0]).parent) + '/*.' + movie_config.image_type
+    img_dir = 'img/*.' + movie_config.image_type
     logging.info(f'img_dir: {img_dir}')
+    copy_images_for_frame_rate(image_paths, movie_config.frame_rate)
     commands = ['ffmpeg',
                     '-framerate', f'{movie_config.frame_rate}',
                     # Select image_dir/*.file_type
