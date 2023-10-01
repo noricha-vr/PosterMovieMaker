@@ -4,3 +4,4 @@ movie/*
 *format*
 .DS_Store
 *.pyc
+credentials.json
