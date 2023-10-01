@@ -2,7 +2,7 @@ import json
 import shutil
 import unittest
 from unittest.mock import patch
-from utils import download_images, image_to_movie, to_image_urls, to_png, upload_blob, MovieConfig,bucket_name
+from utils import download_images, image_to_movie, rotate_image, to_image_urls, to_png, upload_blob, MovieConfig,bucket_name
 from moviepy.editor import VideoFileClip
 import os
 import logging
@@ -19,6 +19,7 @@ class TestUtils(unittest.TestCase):
         self.image_urls = to_image_urls(self.data)
         self.image_paths = download_images(self.image_urls)
         self.image_paths = to_png(self.image_paths)
+        rotate_image(self.image_paths)
         logging.debug(self.image_urls)
         logging.debug(self.image_paths)
         # 動画作成
@@ -36,7 +37,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(self.image_urls, 
             ['https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png',
             "https://cdn.discordapp.com/attachments/1136630413054464070/1147808687201734736/3.png",
-            "https://cdn.discordapp.com/attachments/1136630413054464070/1147808687201734736/3.png"],
+            "https://cdn.discordapp.com/attachments/1111955559562870875/1153912198700224532/Poster20230919_002.png"],
             "画像のURLが一致しません")
 
     def test_download_images(self):
