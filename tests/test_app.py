@@ -2,12 +2,12 @@ import json
 import shutil
 import unittest
 from unittest.mock import patch
-from utils import download_images, image_to_movie, to_image_urls, upload_blob, MovieConfig  
+from utils import download_images, image_to_movie, to_image_urls, upload_blob, MovieConfig,bucket_name,destination_blob_name
 from moviepy.editor import VideoFileClip
 import os
 import logging
 import sys
-
+from google.cloud import storage
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 class TestUtils(unittest.TestCase):
@@ -19,13 +19,17 @@ class TestUtils(unittest.TestCase):
         self.image_paths = download_images(self.image_urls)
         logging.debug(self.image_urls)
         logging.debug(self.image_paths)
+        # 動画作成
+        movie_config = MovieConfig(frame_rate=2, width=640, encode_speed="fast", output_movie_path="movie/output.mp4")
+        image_to_movie(movie_config, self.image_paths)
+        self.assertTrue(os.path.exists(movie_config.output_movie_path), "動画ファイルが存在しません")
 
-    def tearDown(self) -> None:
-        if os.path.exists("img"):
-            shutil.rmtree("img")
-        output_movie_path = "movie/output.mp4"
-        if os.path.exists(output_movie_path):
-            os.remove(output_movie_path)
+    # def tearDown(self) -> None:
+    #     if os.path.exists("img"):
+    #         shutil.rmtree("img")
+    #     output_movie_path = "movie/output.mp4"
+    #     if os.path.exists(output_movie_path):
+    #         os.remove(output_movie_path)
 
     def test_to_image_url(self):
         self.assertEqual(self.image_urls, 
@@ -47,19 +51,10 @@ class TestUtils(unittest.TestCase):
             self.assertEqual(clip.duration, expected_duration)
 
     
-    @patch("google.cloud.storage.Client")
-    def test_upload_blob(self, mock_storage_client):
-        mock_bucket = MagicMock()
-        mock_blob = MagicMock()
-        mock_storage_client.return_value.bucket.return_value = mock_bucket
-        mock_bucket.blob.return_value = mock_blob
-        
-        upload_blob("my_bucket", "source_file.mp4", "destination_blob_name")
-        
-        mock_storage_client.return_value.bucket.assert_called_once_with("my_bucket")
-        mock_bucket.blob.assert_called_once_with("destination_blob_name")
-        mock_blob.upload_from_filename.assert_called_once_with("source_file.mp4")
-
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_upload_movie(self):
+        upload_blob(bucket_name, "movie/output.mp4", destination_blob_name)
+        # アップロードされた動画の存在を確認
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(destination_blob_name)
+        self.assertTrue(blob.exists(), "アップロードされた動画が存在しません")

@@ -23,5 +23,10 @@
         "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
     ],
-    "workspaceFolder": "/app"
+    "workspaceFolder": "/app",
+    "settings": {
+        "terminal.integrated.env.linux": {
+            "GOOGLE_APPLICATION_CREDENTIALS": "/app/credentials.json"
+        }
+    }
 }

@@ -11,10 +11,17 @@ import logging
 import sys
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-bucket_name = "TaAGatheringListSystem"
+bucket_name = "ta-a-gathering"
 source_file_name = "movie/output.mp4"
-destination_blob_name = "TaAGatheringList.mp4"
+destination_blob_name = "poster.mp4"
 json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
+
+def upload_blob(bucket_name, source_file_name, destination_blob_name):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+
 
 class MovieConfig:
     def __init__(self, frame_rate, width, encode_speed, output_movie_path, image_type='png'):
@@ -40,6 +47,7 @@ def download_images(image_urls:list[str])->list:
     # imgフォルダがない場合、作成する
     if not os.path.exists("img"):
         os.makedirs("img")
+    # img フォルダを空にする
     file_names = []
     for i, image_url in enumerate(image_urls):
         image_file_name = f"img/{i:03d}.png"
@@ -88,7 +96,7 @@ def image_to_movie(movie_config: MovieConfig,image_paths:List[str]) -> None:
     if len(image_paths) == 0:
         raise Exception("No image files.")
     img_dir = str(pathlib.Path(image_paths[0]).parent) + '/*.' + movie_config.image_type
-    logger.info(f'img_dir: {img_dir}')
+    logging.info(f'img_dir: {img_dir}')
     commands = ['ffmpeg',
                     '-framerate', f'{movie_config.frame_rate}',
                     # Select image_dir/*.file_type
@@ -100,16 +108,10 @@ def image_to_movie(movie_config: MovieConfig,image_paths:List[str]) -> None:
                     '-tune', 'stillimage',  # tune for still image
                     '-y',  # overwrite output file
                     f'{movie_config.output_movie_path}']
-    logger.info(f'commands: {commands}')
+    logging.info(f'commands: {commands}')
     try:
-        result = subprocess.run(commands, check=True, stderr=subprocess.PIPE, text=True)
+        subprocess.run(commands, check=True, stderr=subprocess.PIPE, text=True)
     except subprocess.CalledProcessError as e:
         error_message = e.stderr
-        print(f'Error: {error_message}')
+        logging.error(f'Error: {error_message}')
     
-
-def upload_blob(bucket_name, source_file_name, destination_blob_name):
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
-    blob.upload_from_filename(source_file_name)
