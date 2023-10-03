@@ -2,7 +2,7 @@ import json
 import shutil
 import unittest
 from unittest.mock import patch
-from utils import download_images, image_to_movie, process_images, to_image_urls, to_png, upload_blob, MovieConfig, bucket_name
+from utils import download_images, image_to_movie, process_images, to_image_urls, upload_blob, MovieConfig, bucket_name
 from moviepy.editor import VideoFileClip
 import os
 import logging
@@ -29,11 +29,11 @@ class TestUtils(unittest.TestCase):
         self.assertTrue(os.path.exists(
             self.movie_config.output_movie_path), "動画ファイルが存在しません")
 
-    # def tearDown(self) -> None:
-    #     if os.path.exists("img"):
-    #         shutil.rmtree("img")
-    #     if os.path.exists(self.movie_config.output_movie_path):
-    #         os.remove(self.movie_config.output_movie_path)
+    def tearDown(self) -> None:
+        if os.path.exists("img"):
+            shutil.rmtree("img")
+        if os.path.exists(self.movie_config.output_movie_path):
+            os.remove(self.movie_config.output_movie_path)
 
     def test_to_image_url(self):
         self.assertEqual(self.image_urls,
@@ -46,8 +46,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(len(self.image_paths), len(self.data), "画像の枚数が一致しません")
 
     def test_process_image(self):
-        png_paths = to_png(self.image_paths)
-        for png_path in png_paths:
+        for png_path in self.image_paths:
             with Image.open(png_path) as img:
                 self.assertEqual(img.format, "PNG",
                                  f"{png_path} は PNG 形式ではありません")

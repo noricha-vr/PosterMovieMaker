@@ -13,7 +13,7 @@ from PIL import Image
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 bucket_name = "ta-a-gathering"
-source_file_name = "movie/output.mp4"
+source_file_name = "movie/poster.mp4"
 destination_blob_name = "poster.mp4"
 json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
 
@@ -64,21 +64,6 @@ def download_images(image_urls: list[str]) -> list:
         except requests.RequestException as e:
             print(f"画像のダウンロードに失敗しました: {e}")
     return file_names
-
-
-def to_png(image_paths: List[str]) -> List[str]:
-    # Pillow で画像を開き、PNG に変換して保存
-    png_paths = []
-    for i, image_path in enumerate(image_paths):
-        png_path = image_path.replace(
-            f'.{image_path.split(".")[-1]}',
-            f'.png')
-        png_paths.append(png_path)
-        try:
-            Image.open(image_path).save(png_path)
-        except OSError:
-            print(f"{image_path} cannot be converted.")
-    return png_paths
 
 
 def process_images(image_paths: List[str]) -> List[str]:
