@@ -39,7 +39,8 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(self.image_urls,
                          ['https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png',
                           "https://cdn.discordapp.com/attachments/1136630413054464070/1147808687201734736/3.png",
-                          "https://cdn.discordapp.com/attachments/1111955559562870875/1153912198700224532/Poster20230919_002.png"],
+                          "https://cdn.discordapp.com/attachments/1111955559562870875/1153912198700224532/Poster20230919_002.png",
+                          "https://cdn.discordapp.com/attachments/1022831613186424880/1157205676523782204/271472907-a4b672da-1c66-4768-82e9-1468a9be8453.png"],
                          "画像のURLが一致しません")
 
     def test_download_images(self):
