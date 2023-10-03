@@ -25,7 +25,7 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 
 
 class MovieConfig:
-    def __init__(self, width, encode_speed, output_movie_path, image_type='png',frame_rate=2):
+    def __init__(self, width, encode_speed, output_movie_path, image_type='png',frame_rate=6):
         self.frame_rate = frame_rate
         self.width = width
         self.encode_speed = encode_speed
@@ -76,6 +76,40 @@ def to_png(image_paths:List[str])->List[str]:
         except OSError:
             print(f"{image_path} cannot be converted.")
     return png_paths
+
+
+def process_images(image_paths: List[str]) -> List[str]:
+    for i, path in enumerate(image_paths):
+        # 画像をロード
+        image = Image.open(path)
+        
+        # 画像を左に90度回転
+        rotated_image = image.rotate(90, expand=1)
+        
+        # アスペクト比を維持しながらリサイズ
+        target_size = (1280, 720)
+        rotated_image.thumbnail(target_size)
+       
+        # 背景を黒で作成
+        background = Image.new('RGBA', target_size, (0, 0, 0, 255))
+        
+        # リサイズした画像を背景の中央に配置
+        bg_w, bg_h = background.size
+        img_w, img_h = rotated_image.size
+        offset = ((bg_w - img_w) // 2, (bg_h - img_h) // 2)
+        
+        # アルファチャンネルの有無を確認
+        if rotated_image.mode == 'RGBA':
+            mask = rotated_image.split()[3]
+        else:
+            mask = None
+        
+        # ペースト
+        background.paste(rotated_image, offset, mask=mask)
+        
+        # 最終的な画像で上書き保存
+        background.save(path)
+    return image_paths
 
 def copy_images_for_frame_rate(image_paths: List[str], frame_rate) -> None:
     """
