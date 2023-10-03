@@ -10,7 +10,7 @@ import logging
 import sys
 from PIL import Image
 
-from settings import BUKECT_NAME
+from settings import BUKECT_NAME, DEFAULT_IMAGE_URL
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
@@ -32,11 +32,10 @@ class MovieConfig:
 
 def to_image_urls(data: dict) -> list:
     images = []
-    default_image_url = "https://cdn.discordapp.com/attachments/1053199603035553822/1158768381449740338/black.png"
     for i, item in enumerate(data):
         poster_url = item.get("ポスター", '')
         if poster_url == '':
-            images.append(default_image_url)
+            images.append(DEFAULT_IMAGE_URL)
         else:
             images.append(poster_url)
     return images

@@ -40,19 +40,36 @@ docker run -e GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json -p 8080:8
 
 6. クラウドストレージのバケットルートに`poster.mp4`が作成される
 
+## オプション
+
+settings.py から設定を変更できます。
+
+BUKECT_NAME: GCSのバケット名
+GCS_FILE_PATH: GCSにアップロードするファイルのパス
+DEFAULT_IMAGE_URL： 画像が見つからなかった場合に表示する画像のURL
+
+もしくは、コンテナ起動時に環境変数を設定することでも上記の設定を変更できます。
+
+```
+docker run \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json \
+  -e BUCKET_NAME=your_bucket_name \
+  -e GCS_FILE_PATH=your_file_path \
+  -e DEFAULT_IMAGE_URL=your_default_image_url \
+  -p 8080:8080 \
+  poster-movie-maker
+
+```
 
 ## Credit
 
-開発元　個人開発者集会運営・スタッフ
+開発元　個人開発者集会運営・スタッフ 
 
-アセット作成・公開
+- のりちゃん(noricha-vr)
 
-- Azukimochi
-JSONデータ作成
+- アセット作成・公開 Azukimochi [TaAGatheringListSystem](https://github.com/Azukimochi/TaAGatheringListSystem) 
 
 ## 関連情報
-
-- アセット [TaAGatheringListSystem](https://github.com/Azukimochi/TaAGatheringListSystem) by Azukimochi
 
 - [JSONデータ](https://noricha-vr.github.io/toGithubPagesJson/sample.json) by のりちゃん(noricha-vr)
 
