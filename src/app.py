@@ -1,7 +1,7 @@
 from flask import Flask
 import json
 import requests
-from movie import image_to_movie, MovieConfig, download_images, upload_blob
+from utils import image_to_movie, MovieConfig, download_images, upload_blob
 import logging
 import sys
 from settings import GCS_FILE_PATH
