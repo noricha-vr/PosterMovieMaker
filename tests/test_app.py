@@ -2,7 +2,8 @@ import json
 import shutil
 import unittest
 from unittest.mock import patch
-from utils import download_images, image_to_movie, process_images, to_image_urls, upload_blob, MovieConfig, bucket_name
+from settings import BUKECT_NAME
+from utils import download_images, image_to_movie, process_images, to_image_urls, upload_blob, MovieConfig
 from moviepy.editor import VideoFileClip
 import os
 import logging
@@ -24,7 +25,7 @@ class TestUtils(unittest.TestCase):
         logging.debug(self.image_paths)
         # 動画作成
         self.movie_config = MovieConfig(
-            width=640, encode_speed="fast", output_movie_path="movie/poster_test.mp4")
+            encode_speed="fast", output_movie_path="movie/poster_test.mp4")
         image_to_movie(self.movie_config, self.image_paths)
         self.assertTrue(os.path.exists(
             self.movie_config.output_movie_path), "動画ファイルが存在しません")
@@ -64,10 +65,9 @@ class TestUtils(unittest.TestCase):
 
     def test_upload_movie(self):
         destination_blob_name = "poster_test.mp4"
-        upload_blob(bucket_name, self.movie_config.output_movie_path,
-                    destination_blob_name)
+        upload_blob(self.movie_config.output_movie_path, destination_blob_name)
         # アップロードされた動画の存在を確認
         storage_client = storage.Client()
-        bucket = storage_client.bucket(bucket_name)
+        bucket = storage_client.bucket(BUKECT_NAME)
         blob = bucket.blob(destination_blob_name)
         self.assertTrue(blob.exists(), "アップロードされた動画が存在しません")

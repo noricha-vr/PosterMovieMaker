@@ -4,29 +4,25 @@ import subprocess
 from threading import Thread
 from typing import List
 from google.cloud import storage
-import time
 import requests
 import os
 import logging
 import sys
 from PIL import Image
+
+from settings import BUKECT_NAME
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-bucket_name = "ta-a-gathering"
-source_file_name = "movie/poster.mp4"
-destination_blob_name = "poster.mp4"
-json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
 
-
-def upload_blob(bucket_name, source_file_name, destination_blob_name):
+def upload_blob(source_file_name: str, gcs_file_path: str):
     storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
+    bucket = storage_client.bucket(BUKECT_NAME)
+    blob = bucket.blob(gcs_file_path)
     blob.upload_from_filename(source_file_name)
 
 
 class MovieConfig:
-    def __init__(self, width, encode_speed, output_movie_path, image_type='png', frame_rate=6):
+    def __init__(self, encode_speed: str, output_movie_path: str, image_type='png', frame_rate=6, width=720):
         self.frame_rate = frame_rate
         self.width = width
         self.encode_speed = encode_speed

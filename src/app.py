@@ -2,24 +2,49 @@ from flask import Flask
 import json
 import requests
 from movie import image_to_movie, MovieConfig, download_images, upload_blob
+import logging
+import sys
+from settings import GCS_FILE_PATH
+
+from utils import process_images, to_image_urls
+fm = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(fm)
+logger = logging.getLogger(__name__)
+logger.addHandler(handler)
+
+
+json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
 
 app = Flask(__name__)
 
 
-
 @app.route('/')
 def run_script():
-    response = requests.get(json_url)
-    data = json.loads(response.text)
-    
-    images = download_images(data)
-    movie_config = MovieConfig(frame_rate='1', width='640', encode_speed='fast', output_movie_path='movie/output.mp4', image_type='png')
-    image_to_movie(movie_config, images)
+    try:
+        # JSONを取得
+        response = requests.get(json_url)
+        data = json.loads(response.text)
+        # 画像をダウンロード・加工
+        image_urls = to_image_urls(data)
+        image_paths = download_images(image_urls)
+        logging.debug(image_urls)
+        image_paths = process_images(image_paths)
+        logging.debug(image_paths)
+        # 動画作成
+        movie_config = MovieConfig(
+            encode_speed="veryslow",
+            output_movie_path="movie/poster.mp4"
+        )
+        image_to_movie(movie_config, image_paths)
+        # 動画をGCSにアップロード
+        upload_blob(movie_config.output_movie_path, GCS_FILE_PATH)
+        return "Process completed"
+    except Exception as e:
+        logger.error(e)
+        return "Process failed"
 
-
-    upload_blob(bucket_name, source_file_name, destination_blob_name)
-
-    return "Process completed"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
