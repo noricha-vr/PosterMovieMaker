@@ -1,4 +1,4 @@
-import pathlib
+import glob
 import shutil
 import subprocess
 from threading import Thread
@@ -46,7 +46,10 @@ def download_images(image_urls: list[str]) -> list:
     # imgフォルダがない場合、作成する
     if not os.path.exists("img"):
         os.makedirs("img")
-    # img フォルダを空にする
+    else:
+        # すでにimgフォルダがある場合、中身を削除する
+        for f in glob.glob("img/*"):
+            os.remove(f)
     file_names = []
     for i, image_url in enumerate(image_urls):
         image_file_name = f"img/{i:03d}.png"
