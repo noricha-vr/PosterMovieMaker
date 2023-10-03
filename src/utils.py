@@ -36,7 +36,7 @@ class MovieConfig:
 
 def to_image_urls(data: dict) -> list:
     images = []
-    default_image_url = "https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png"
+    default_image_url = "https://cdn.discordapp.com/attachments/1053199603035553822/1158768381449740338/black.png"
     for i, item in enumerate(data):
         poster_url = item.get("ポスター", '')
         if poster_url == '':
