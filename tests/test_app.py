@@ -11,11 +11,15 @@ import sys
 from PIL import Image
 from google.cloud import storage
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+# 環境変数の設定
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/app/credentials.json"
 
 
 class TestUtils(unittest.TestCase):
 
     def setUp(self) -> None:
+        self.assertTrue(os.path.exists(
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"]), "credentials.jsonが存在しません")
         with open("tests/test_data.json", "r") as f:
             self.data = json.load(f)
         self.image_urls = to_image_urls(self.data)

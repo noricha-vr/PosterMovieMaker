@@ -10,8 +10,26 @@ import logging
 import sys
 from PIL import Image
 
-from settings import BUKECT_NAME, DEFAULT_IMAGE_URL
+from settings import BUKECT_NAME, DEFAULT_IMAGE_URL, JSON_IMAGE_KEY
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+
+logging.info(f'Evironment: {os.environ}')
+# 環境変数の設定
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/app/credentials.json"
+
+# 環境変数が正しく設定されたか確認
+# if not os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"]):
+#     print("Fucking hell, credentials.json is not found!")
+# else:
+#     print("Good, credentials.json is found.")
+
+# Google Cloud Storageクライアントの初期化
+# try:
+#     storage_client = storage.Client()
+#     print("Successfully initialized storage client.")
+# except Exception as e:
+#     print(f"Initialization failed with error: {e}")
 
 
 def upload_blob(source_file_name: str, gcs_file_path: str):
@@ -33,7 +51,7 @@ class MovieConfig:
 def to_image_urls(data: dict) -> list:
     images = []
     for i, item in enumerate(data):
-        poster_url = item.get("ポスター", '')
+        poster_url = item.get(JSON_IMAGE_KEY, '')
         if poster_url == '':
             images.append(DEFAULT_IMAGE_URL)
         else:

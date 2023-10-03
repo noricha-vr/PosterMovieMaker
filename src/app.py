@@ -4,7 +4,7 @@ import requests
 from utils import image_to_movie, MovieConfig, download_images, upload_blob
 import logging
 import sys
-from settings import GCS_FILE_PATH
+from settings import GCS_FILE_PATH, JSON_RUL
 
 from utils import process_images, to_image_urls
 fm = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 logger.addHandler(handler)
 
 
-json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
-
 app = Flask(__name__)
 
 
@@ -24,7 +22,7 @@ app = Flask(__name__)
 def run_script():
     try:
         # JSONを取得
-        response = requests.get(json_url)
+        response = requests.get(JSON_RUL)
         data = json.loads(response.text)
         # 画像をダウンロード・加工
         image_urls = to_image_urls(data)
