@@ -129,6 +129,9 @@ def image_to_movie(movie_config: MovieConfig, image_paths: List[str]) -> None:
     :param movie_config:
     :return None:
     """
+    # create movie dir
+    if not os.path.exists("movie"):
+        os.makedirs("movie")
     if len(image_paths) == 0:
         raise Exception("No image files.")
     img_dir = 'img/*.' + movie_config.image_type
