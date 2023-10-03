@@ -17,6 +17,7 @@ source_file_name = "movie/output.mp4"
 destination_blob_name = "poster.mp4"
 json_url = 'https://noricha-vr.github.io/toGithubPagesJson/sample.json'
 
+
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
@@ -25,14 +26,15 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 
 
 class MovieConfig:
-    def __init__(self, width, encode_speed, output_movie_path, image_type='png',frame_rate=6):
+    def __init__(self, width, encode_speed, output_movie_path, image_type='png', frame_rate=6):
         self.frame_rate = frame_rate
         self.width = width
         self.encode_speed = encode_speed
         self.output_movie_path = output_movie_path
         self.image_type = image_type
 
-def to_image_urls(data:dict)->list:
+
+def to_image_urls(data: dict) -> list:
     images = []
     default_image_url = "https://cdn.discordapp.com/attachments/1136630413054464070/1147808605660270642/10.png"
     for i, item in enumerate(data):
@@ -42,9 +44,9 @@ def to_image_urls(data:dict)->list:
         else:
             images.append(poster_url)
     return images
-    
 
-def download_images(image_urls:list[str])->list:
+
+def download_images(image_urls: list[str]) -> list:
     # imgフォルダがない場合、作成する
     if not os.path.exists("img"):
         os.makedirs("img")
@@ -61,9 +63,10 @@ def download_images(image_urls:list[str])->list:
             file_names.append(image_file_name)
         except requests.RequestException as e:
             print(f"画像のダウンロードに失敗しました: {e}")
-    return file_names 
+    return file_names
 
-def to_png(image_paths:List[str])->List[str]:
+
+def to_png(image_paths: List[str]) -> List[str]:
     # Pillow で画像を開き、PNG に変換して保存
     png_paths = []
     for i, image_path in enumerate(image_paths):
@@ -82,34 +85,35 @@ def process_images(image_paths: List[str]) -> List[str]:
     for i, path in enumerate(image_paths):
         # 画像をロード
         image = Image.open(path)
-        
+
         # 画像を左に90度回転
         rotated_image = image.rotate(90, expand=1)
-        
+
         # アスペクト比を維持しながらリサイズ
         target_size = (1280, 720)
         rotated_image.thumbnail(target_size)
-       
+
         # 背景を黒で作成
         background = Image.new('RGBA', target_size, (0, 0, 0, 255))
-        
+
         # リサイズした画像を背景の中央に配置
         bg_w, bg_h = background.size
         img_w, img_h = rotated_image.size
         offset = ((bg_w - img_w) // 2, (bg_h - img_h) // 2)
-        
+
         # アルファチャンネルの有無を確認
         if rotated_image.mode == 'RGBA':
             mask = rotated_image.split()[3]
         else:
             mask = None
-        
+
         # ペースト
         background.paste(rotated_image, offset, mask=mask)
-        
+
         # 最終的な画像で上書き保存
         background.save(path)
     return image_paths
+
 
 def copy_images_for_frame_rate(image_paths: List[str], frame_rate) -> None:
     """
@@ -126,17 +130,17 @@ def copy_images_for_frame_rate(image_paths: List[str], frame_rate) -> None:
             new_image_path = image_path.replace(
                 f'.{image_path.split(".")[-1]}',
                 f'_{i:02d}.{image_path.split(".")[-1]}')
-            
+
             t = Thread(target=shutil.copy,
-                            args=(
-                                image_path,
-                                new_image_path))
+                       args=(
+                           image_path,
+                           new_image_path))
             t.start()
             threads.append(t)
     [thread.join() for thread in threads]
 
 
-def image_to_movie(movie_config: MovieConfig,image_paths:List[str]) -> None:
+def image_to_movie(movie_config: MovieConfig, image_paths: List[str]) -> None:
     """
     Create image_dir files to movie.
     :param movie_config:
@@ -148,20 +152,22 @@ def image_to_movie(movie_config: MovieConfig,image_paths:List[str]) -> None:
     logging.info(f'img_dir: {img_dir}')
     copy_images_for_frame_rate(image_paths, movie_config.frame_rate)
     commands = ['ffmpeg',
-                    '-framerate', f'{movie_config.frame_rate}',
-                    # Select image_dir/*.file_type
-                    '-pattern_type', 'glob', '-i', img_dir,
-                    '-vf', f"scale='min({movie_config.width},iw)':-2",  # iw is input width, -2 is auto height
-                    '-c:v', 'h264',  # codec
-                    '-pix_fmt', 'yuv420p',  # pixel format (color space)
-                    '-preset', movie_config.encode_speed,
-                    '-tune', 'stillimage',  # tune for still image
-                    '-y',  # overwrite output file
-                    f'{movie_config.output_movie_path}']
+                '-framerate', f'{movie_config.frame_rate}',
+                # Select image_dir/*.file_type
+                '-pattern_type', 'glob', '-i', img_dir,
+                # iw is input width, -2 is auto height
+                '-vf', f"scale='min({movie_config.width},iw)':-2",
+                '-c:v', 'h264',  # codec
+                '-pix_fmt', 'yuv420p',
+                '-profile:v', 'baseline',  # Baseline Profile を使う
+                '-bf', '0',  # Bidirectional Predictive Frame を使わない
+                '-preset', movie_config.encode_speed,
+                '-tune', 'stillimage',  # tune for still image
+                '-y',  # overwrite output file
+                f'{movie_config.output_movie_path}']
     logging.info(f'commands: {commands}')
     try:
         subprocess.run(commands, check=True, stderr=subprocess.PIPE, text=True)
     except subprocess.CalledProcessError as e:
         error_message = e.stderr
         logging.error(f'Error: {error_message}')
-    
